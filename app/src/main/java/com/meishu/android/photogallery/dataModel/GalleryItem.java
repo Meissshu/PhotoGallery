@@ -1,14 +1,20 @@
 package com.meishu.android.photogallery.dataModel;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by Meishu on 23.07.2017.
  */
 
 public class GalleryItem {
 
+    @SerializedName("title")
     private String caption;
     private String id;
+    @SerializedName("url_s")
     private String url;
+
+    public GalleryItem() {}
 
     @Override
     public String toString() {

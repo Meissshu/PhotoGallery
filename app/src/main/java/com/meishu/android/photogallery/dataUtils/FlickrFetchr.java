@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.meishu.android.photogallery.R;
 import com.meishu.android.photogallery.dataModel.GalleryItem;
 
@@ -96,12 +98,12 @@ public class FlickrFetchr {
                 continue;
             }
 
-            GalleryItem galleryItem = new GalleryItem();
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            Gson gson = gsonBuilder.create();
 
-            galleryItem.setId(singleJSONPhotoObject.getString("id"));
-            galleryItem.setCaption(singleJSONPhotoObject.getString("title"));
+            GalleryItem galleryItem = gson.fromJson(singleJSONPhotoObject.toString(), GalleryItem.class);
 
-            galleryItem.setUrl(singleJSONPhotoObject.getString("url_s"));
+
             list.add(galleryItem);
         }
     }
