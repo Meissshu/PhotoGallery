@@ -7,15 +7,12 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.meishu.android.photogallery.R;
-import com.meishu.android.photogallery.data.FlickrFetchr;
-
-import java.io.IOException;
+import com.meishu.android.photogallery.dataUtils.FlickrFetchr;
 
 /**
  * Created by Meishu on 20.07.2017.
@@ -54,13 +51,7 @@ public class PhotoGalleryFragment extends Fragment {
         protected Void doInBackground(String... params) {
             if (TextUtils.isEmpty(params[0]))
                 return null;
-            try {
-                String result = new FlickrFetchr().getURLString(params[0]);
-                Log.i(TAG, "Fetched contents of url: " + result);
-            }
-            catch (IOException e) {
-                Log.e(TAG, "Error fetching", e);
-            }
+            new FlickrFetchr().fetchItems(getActivity());
             return null;
         }
     }
