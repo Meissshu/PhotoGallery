@@ -5,12 +5,21 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.meishu.android.photogallery.R;
+import com.meishu.android.photogallery.dataModel.GalleryItem;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
 
 /**
  * Created by Meishu on 20.07.2017.
@@ -49,7 +58,9 @@ public class FlickrFetchr {
         return new String(getUrlBytes(urlSpec));
     }
 
-    public void fetchItems(Context context) {
+    public List<GalleryItem> fetchItems(Context context) {
+        List<GalleryItem> list = new ArrayList<>();
+
         try {
             String url = Uri.parse("https://api.flickr.com/services/rest/")
                     .buildUpon()
@@ -62,9 +73,36 @@ public class FlickrFetchr {
                     .toString();
             String jsonString = getURLString(url);
             Log.i(TAG, "Got json string: " + jsonString);
+            JSONObject jsonObject = new JSONObject(jsonString);
+            parseItemsFromJSON(list, jsonObject);
         }
         catch (IOException e) {
             Log.e(TAG, "Fetch items exception: ", e);
+        } catch (JSONException e) {
+            Log.e(TAG, "JSON parsing error", e);
+        }
+
+        return list;
+    }
+
+    private void parseItemsFromJSON(List<GalleryItem> list, JSONObject jsonBody) throws IOException, JSONException{
+        JSONObject photosJSONObject = jsonBody.getJSONObject("photos");
+        JSONArray photosJSONArray = photosJSONObject.getJSONArray("photo");
+
+        for (int i = 0; i < photosJSONArray.length(); ++i) {
+
+            JSONObject singleJSONPhotoObject = photosJSONArray.getJSONObject(i);
+            if (!singleJSONPhotoObject.has("url_s")) {
+                continue;
+            }
+
+            GalleryItem galleryItem = new GalleryItem();
+
+            galleryItem.setId(singleJSONPhotoObject.getString("id"));
+            galleryItem.setCaption(singleJSONPhotoObject.getString("title"));
+
+            galleryItem.setUrl(singleJSONPhotoObject.getString("url_s"));
+            list.add(galleryItem);
         }
     }
 }
