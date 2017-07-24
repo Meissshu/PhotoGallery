@@ -1,9 +1,11 @@
 package com.meishu.android.photogallery.fragments;
 
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -12,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.meishu.android.photogallery.R;
@@ -84,15 +87,15 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
 
     private class PhotoHolder extends RecyclerView.ViewHolder {
 
-        private TextView textView;
+        private ImageView imageView;
 
         public PhotoHolder(View itemView) {
             super(itemView);
-            textView = (TextView) itemView;
+            imageView = (ImageView) itemView.findViewById(R.id.fragment_photo_gallery_iv);
         }
 
-        public void bind(GalleryItem item) {
-            textView.setText(item.toString());
+        public void bind(Drawable drawable) {
+            imageView.setImageDrawable(drawable);
         }
     }
 
@@ -106,13 +109,15 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
 
         @Override
         public PhotoHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            TextView textView = new TextView(getActivity());
-            return new PhotoHolder(textView);
+            LayoutInflater inflater = LayoutInflater.from(getActivity());
+            View view = inflater.inflate(R.layout.gallery_item, parent, false);
+            return new PhotoHolder(view);
         }
 
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
-            holder.bind(galleryItemList.get(position));
+            Drawable placeholder = ResourcesCompat.getDrawable(getResources(), R.drawable.bill_up_close, null);
+            holder.bind(placeholder);
         }
 
         @Override
