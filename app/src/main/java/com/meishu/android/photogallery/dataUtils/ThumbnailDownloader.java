@@ -23,13 +23,20 @@ public class ThumbnailDownloader<T> extends HandlerThread {
 
     private Handler requestHandler;
     private ConcurrentMap<T, String> requestMap = new ConcurrentHashMap<>();
+    private Handler responseHandler;
+    private ThumbnailDownloadListener<T> thumbnailDownloadListener;
+
+    public interface ThumbnailDownloadListener<T> {
+        void onThumnailDownloaded(T target, Bitmap thumbnail);
+    }
 
     public ThumbnailDownloader(Handler responseHandler) {
         super(TAG);
+        this.responseHandler = responseHandler;
     }
 
-    public ThumbnailDownloader() {
-        super(TAG);
+    public void setThumbnailDownloadListener(ThumbnailDownloadListener<T> listener) {
+        thumbnailDownloadListener = listener;
     }
 
     public void queueThumbnail(T target, String url) {
@@ -58,6 +65,10 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         };
     }
 
+    public void clearQueue() {
+        requestHandler.removeMessages(MESSAGE_DOWNLOAD);
+    }
+
     private void handleRequest(final T target) {
         try {
             final String url = requestMap.get(target);
@@ -67,6 +78,18 @@ public class ThumbnailDownloader<T> extends HandlerThread {
             byte[] bitmapBytes = new FlickrFetchr().getUrlBytes(url);
             final Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
             Log.i(TAG, "Bitmap created");
+
+            responseHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (requestMap.get(target) != url) {
+                        return;
+                    }
+
+                    requestMap.remove(target);
+                    thumbnailDownloadListener.onThumnailDownloaded(target, bitmap);
+                }
+            });
         }
          catch (IOException e) {
            Log.e(TAG, "Error downloading image", e);

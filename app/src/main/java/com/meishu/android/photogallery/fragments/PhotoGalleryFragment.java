@@ -1,8 +1,11 @@
 package com.meishu.android.photogallery.fragments;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.res.ResourcesCompat;
@@ -50,7 +53,15 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
         setRetainInstance(true);
         new FetchItemsTask().execute();
 
-        thumbnailDownloader = new ThumbnailDownloader<>();
+        Handler responseHandler = new Handler();
+        thumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
+        thumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<PhotoHolder>() {
+            @Override
+            public void onThumnailDownloaded(PhotoHolder target, Bitmap thumbnail) {
+                Drawable drawable = new BitmapDrawable(getResources(), thumbnail);
+                target.bind(drawable);
+            }
+        });
         thumbnailDownloader.start();
         thumbnailDownloader.getLooper();
         Log.i(TAG, "Background thread started");
@@ -61,6 +72,12 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
         super.onDestroy();
         thumbnailDownloader.quit();
         Log.i(TAG, "Background thread destroyed");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        thumbnailDownloader.clearQueue();
     }
 
     @Nullable
