@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.meishu.android.photogallery.R;
 import com.meishu.android.photogallery.dataModel.GalleryItem;
 import com.meishu.android.photogallery.dataUtils.FlickrFetchr;
+import com.meishu.android.photogallery.dataUtils.ThumbnailDownloader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +32,13 @@ import java.util.List;
 public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.OnGlobalLayoutListener{
 
     public static final String TAG = "PhotoGalleryFragment";
+    private static final int COLUMN_WIDGHT = 240;
  //   public static final String SITE = "https://www.bignerdranch.com";
 
     private RecyclerView recyclerView;
     private List<GalleryItem> galleryItems = new ArrayList<>();
-    private static final int COLUMN_WIDGHT = 240;
+    private ThumbnailDownloader<PhotoHolder> thumbnailDownloader;
+
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
@@ -46,6 +49,18 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         new FetchItemsTask().execute();
+
+        thumbnailDownloader = new ThumbnailDownloader<>();
+        thumbnailDownloader.start();
+        thumbnailDownloader.getLooper();
+        Log.i(TAG, "Background thread started");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        thumbnailDownloader.quit();
+        Log.i(TAG, "Background thread destroyed");
     }
 
     @Nullable
@@ -116,8 +131,10 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
 
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
+            GalleryItem galleryItem = galleryItemList.get(position);
             Drawable placeholder = ResourcesCompat.getDrawable(getResources(), R.drawable.bill_up_close, null);
             holder.bind(placeholder);
+            thumbnailDownloader.queueThumbnail(holder, galleryItem.getUrl());
         }
 
         @Override
