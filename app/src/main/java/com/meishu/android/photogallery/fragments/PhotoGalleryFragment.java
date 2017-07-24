@@ -7,9 +7,11 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
 import com.meishu.android.photogallery.R;
@@ -23,13 +25,14 @@ import java.util.List;
  * Created by Meishu on 20.07.2017.
  */
 
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.OnGlobalLayoutListener{
 
     public static final String TAG = "PhotoGalleryFragment";
  //   public static final String SITE = "https://www.bignerdranch.com";
 
     private RecyclerView recyclerView;
     private List<GalleryItem> galleryItems = new ArrayList<>();
+    private static final int COLUMN_WIDGHT = 240;
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
@@ -48,6 +51,7 @@ public class PhotoGalleryFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_photo_galery, container, false);
         recyclerView = (RecyclerView) v.findViewById(R.id.fragment_photo_gallery_rv);
         recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
+        recyclerView.getViewTreeObserver().addOnGlobalLayoutListener(this);
         setupAdapter();
         return v;
     }
@@ -55,6 +59,13 @@ public class PhotoGalleryFragment extends Fragment {
     private void setupAdapter() {
         if (isAdded())
             recyclerView.setAdapter(new PhotoAdapter(galleryItems));
+    }
+
+    @Override
+    public void onGlobalLayout() {
+        int spanCount = Math.round(recyclerView.getWidth()/ COLUMN_WIDGHT);
+        Log.i(TAG, "Span count: " + String.valueOf(spanCount));
+        ((GridLayoutManager)recyclerView.getLayoutManager()).setSpanCount(spanCount);
     }
 
     private class FetchItemsTask extends AsyncTask<Void, Void, List<GalleryItem>> {
