@@ -21,8 +21,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
-
 /**
  * Created by Meishu on 20.07.2017.
  */

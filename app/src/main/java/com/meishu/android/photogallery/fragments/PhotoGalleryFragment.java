@@ -9,19 +9,19 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.util.LruCache;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.meishu.android.photogallery.R;
 import com.meishu.android.photogallery.dataModel.GalleryItem;
+import com.meishu.android.photogallery.dataUtils.Cache;
 import com.meishu.android.photogallery.dataUtils.FlickrFetchr;
 import com.meishu.android.photogallery.dataUtils.ThumbnailDownloader;
 
@@ -32,15 +32,16 @@ import java.util.List;
  * Created by Meishu on 20.07.2017.
  */
 
-public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.OnGlobalLayoutListener{
+public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.OnGlobalLayoutListener {
 
     public static final String TAG = "PhotoGalleryFragment";
     private static final int COLUMN_WIDGHT = 240;
- //   public static final String SITE = "https://www.bignerdranch.com";
+    //   public static final String SITE = "https://www.bignerdranch.com";
 
     private RecyclerView recyclerView;
     private List<GalleryItem> galleryItems = new ArrayList<>();
     private ThumbnailDownloader<PhotoHolder> thumbnailDownloader;
+    private LruCache<String, Bitmap> memoryCache;
 
 
     public static PhotoGalleryFragment newInstance() {
@@ -71,6 +72,7 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
     public void onDestroy() {
         super.onDestroy();
         thumbnailDownloader.quit();
+        Cache.clearCache();
         Log.i(TAG, "Background thread destroyed");
     }
 
@@ -98,16 +100,16 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
 
     @Override
     public void onGlobalLayout() {
-        int spanCount = Math.round(recyclerView.getWidth()/ COLUMN_WIDGHT);
+        int spanCount = Math.round(recyclerView.getWidth() / COLUMN_WIDGHT);
         Log.i(TAG, "Span count: " + String.valueOf(spanCount));
-        ((GridLayoutManager)recyclerView.getLayoutManager()).setSpanCount(spanCount);
+        ((GridLayoutManager) recyclerView.getLayoutManager()).setSpanCount(spanCount);
     }
 
     private class FetchItemsTask extends AsyncTask<Void, Void, List<GalleryItem>> {
 
         @Override
         protected List<GalleryItem> doInBackground(Void... params) {
-           return new FlickrFetchr().fetchItems(getActivity());
+            return new FlickrFetchr().fetchItems(getActivity());
         }
 
         @Override

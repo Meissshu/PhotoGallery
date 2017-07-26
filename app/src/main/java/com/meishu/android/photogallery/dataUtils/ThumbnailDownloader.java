@@ -1,6 +1,5 @@
 package com.meishu.android.photogallery.dataUtils;
 
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
@@ -70,29 +69,37 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     }
 
     private void handleRequest(final T target) {
-        try {
-            final String url = requestMap.get(target);
-            if (url == null)
-                return;
 
-            byte[] bitmapBytes = new FlickrFetchr().getUrlBytes(url);
-            final Bitmap bitmap = BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
-            Log.i(TAG, "Bitmap created");
+        final String url = requestMap.get(target);
+        if (url == null)
+            return;
 
-            responseHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (requestMap.get(target) != url) {
-                        return;
-                    }
+        Bitmap cachedBitmap = Cache.getBitmapFromMemoryCache(url);
+        Log.i(TAG, "Checked bitmap in cache");
+        if (cachedBitmap == null) {
+            try {
+                byte[] bitmapBytes = new FlickrFetchr().getUrlBytes(url);
+                cachedBitmap = BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
+                Cache.addBitmapToMemoryCache(url, cachedBitmap);
+                Log.i(TAG, "Bitmap created");
+            } catch (IOException e) {
+                Log.e(TAG, "Error downloading image", e);
+            }
+        }
 
-                    requestMap.remove(target);
-                    thumbnailDownloadListener.onThumnailDownloaded(target, bitmap);
+        final Bitmap bitmap = cachedBitmap;
+
+        responseHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (requestMap.get(target) != url) {
+                    return;
                 }
-            });
-        }
-         catch (IOException e) {
-           Log.e(TAG, "Error downloading image", e);
-        }
+
+                requestMap.remove(target);
+                thumbnailDownloadListener.onThumnailDownloaded(target, bitmap);
+            }
+        });
+
     }
 }
