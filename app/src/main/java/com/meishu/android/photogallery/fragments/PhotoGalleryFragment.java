@@ -27,6 +27,7 @@ import android.widget.TextView;
 import com.meishu.android.photogallery.R;
 import com.meishu.android.photogallery.dataModel.GalleryItem;
 import com.meishu.android.photogallery.dataUtils.FlickrFetchr;
+import com.meishu.android.photogallery.dataUtils.QueryPreferencesUtils;
 import com.meishu.android.photogallery.dataUtils.ThumbnailDownloader;
 
 import java.util.ArrayList;
@@ -38,11 +39,11 @@ import static android.R.id.list;
  * Created by Meishu on 20.07.2017.
  */
 
-public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.OnGlobalLayoutListener{
+public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.OnGlobalLayoutListener {
 
     public static final String TAG = "PhotoGalleryFragment";
     private static final int COLUMN_WIDGHT = 240;
- //   public static final String SITE = "https://www.bignerdranch.com";
+    //   public static final String SITE = "https://www.bignerdranch.com";
 
     private RecyclerView recyclerView;
     private List<GalleryItem> galleryItems = new ArrayList<>();
@@ -110,6 +111,7 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "Text submit from search view: " + query);
+                QueryPreferencesUtils.setStoredQuery(getActivity(), query);
                 updateItems();
                 return true;
             }
@@ -120,10 +122,34 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
                 return false;
             }
         });
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String query = QueryPreferencesUtils.getStoredQuery(getActivity());
+                searchView.setQuery(query, false);
+            }
+        });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.menu_item_clear:
+                QueryPreferencesUtils.setStoredQuery(getActivity(), null);
+                updateItems();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
     }
 
     private void updateItems() {
-        new FetchItemsTask().execute();
+        String query = QueryPreferencesUtils.getStoredQuery(getActivity());
+        new FetchItemsTask(query).execute();
     }
 
     private void setupAdapter() {
@@ -133,21 +159,25 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
 
     @Override
     public void onGlobalLayout() {
-        int spanCount = Math.round(recyclerView.getWidth()/ COLUMN_WIDGHT);
+        int spanCount = Math.round(recyclerView.getWidth() / COLUMN_WIDGHT);
         Log.i(TAG, "Span count: " + String.valueOf(spanCount));
-        ((GridLayoutManager)recyclerView.getLayoutManager()).setSpanCount(spanCount);
+        ((GridLayoutManager) recyclerView.getLayoutManager()).setSpanCount(spanCount);
     }
 
     private class FetchItemsTask extends AsyncTask<Void, Void, List<GalleryItem>> {
 
+        private String query;
+
+        public FetchItemsTask(String query) {
+            this.query = query;
+        }
+
         @Override
         protected List<GalleryItem> doInBackground(Void... params) {
-            String query = "tesla";
 
-            if(query == null) {
+            if (query == null) {
                 return new FlickrFetchr().fetchRecentPhotos(getActivity());
-            }
-            else {
+            } else {
                 return new FlickrFetchr().searchPhotos(query, getActivity());
             }
         }
