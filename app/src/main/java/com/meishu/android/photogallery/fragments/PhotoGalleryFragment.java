@@ -14,6 +14,8 @@ import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -53,6 +55,7 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        setHasOptionsMenu(true);
         new FetchItemsTask().execute();
 
         Handler responseHandler = new Handler();
@@ -91,6 +94,12 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
         recyclerView.getViewTreeObserver().addOnGlobalLayoutListener(this);
         setupAdapter();
         return v;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_photo_gallery, menu);
     }
 
     private void setupAdapter() {
