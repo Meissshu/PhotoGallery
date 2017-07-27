@@ -28,6 +28,8 @@ import com.meishu.android.photogallery.dataUtils.ThumbnailDownloader;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.R.id.list;
+
 /**
  * Created by Meishu on 20.07.2017.
  */
@@ -107,7 +109,14 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
 
         @Override
         protected List<GalleryItem> doInBackground(Void... params) {
-           return new FlickrFetchr().fetchItems(getActivity());
+            String query = "tesla";
+
+            if(query == null) {
+                return new FlickrFetchr().fetchRecentPhotos(getActivity());
+            }
+            else {
+                return new FlickrFetchr().searchPhotos(query, getActivity());
+            }
         }
 
         @Override
