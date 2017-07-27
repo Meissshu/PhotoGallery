@@ -29,7 +29,15 @@ import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
 
 public class FlickrFetchr {
 
-    public static final String TAG = "FlickrFetchr";
+    private static final String TAG = "FlickrFetchr";
+
+    private static final String FETCH_RECENTS_METHOD = "flickr.photos.getRecent";
+    private static final String SEARCH_METHOD = "flickr.photos.search";
+    private static final Uri ENDPOINT = Uri.parse("https://api.flickr.com/services/rest/").buildUpon()
+                    .appendQueryParameter("format", "json")
+                    .appendQueryParameter("nojsoncallback", "1")
+                    .appendQueryParameter("extras", "url_s")
+                    .build();
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
         URL url = new URL(urlSpec);
@@ -60,19 +68,31 @@ public class FlickrFetchr {
         return new String(getUrlBytes(urlSpec));
     }
 
-    public List<GalleryItem> fetchItems(Context context) {
+    public List<GalleryItem> fetchRecentPhotos(Context context) {
+        String url = buildUrl(FETCH_RECENTS_METHOD, null, context);
+        return downloadGalleryItems(url);
+    }
+
+    public List<GalleryItem> searchPhotos(String query, Context context) {
+        String url = buildUrl(SEARCH_METHOD, query, context);
+        return downloadGalleryItems(url);
+    }
+
+    private String buildUrl(String method, String query, Context context) {
+        Uri.Builder builder = ENDPOINT.buildUpon()
+                .appendQueryParameter("api_key", context.getString(R.string.api_key))
+                .appendQueryParameter("method", method);
+
+        if (method.equals(SEARCH_METHOD))
+            builder.appendQueryParameter("text", query);
+
+        return builder.build().toString();
+    }
+
+    private List<GalleryItem> downloadGalleryItems(String url) {
         List<GalleryItem> list = new ArrayList<>();
 
         try {
-            String url = Uri.parse("https://api.flickr.com/services/rest/")
-                    .buildUpon()
-                    .appendQueryParameter("method", "flickr.photos.getRecent")
-                    .appendQueryParameter("api_key", context.getString(R.string.api_key))
-                    .appendQueryParameter("format", "json")
-                    .appendQueryParameter("nojsoncallback", "1")
-                    .appendQueryParameter("extras", "url_s")
-                    .build()
-                    .toString();
             String jsonString = getURLString(url);
             Log.i(TAG, "Got json string: " + jsonString);
             JSONObject jsonObject = new JSONObject(jsonString);
