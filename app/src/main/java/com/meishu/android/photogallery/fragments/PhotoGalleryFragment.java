@@ -1,5 +1,6 @@
 package com.meishu.android.photogallery.fragments;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -21,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -99,6 +101,11 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
         return v;
     }
 
+    private void hideKeyboardFromFragment(Activity activity) {
+        InputMethodManager manager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        manager.hideSoftInputFromWindow(getView().getRootView().getWindowToken(), 0);
+    }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -112,6 +119,7 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "Text submit from search view: " + query);
                 QueryPreferencesUtils.setStoredQuery(getActivity(), query);
+                hideKeyboardFromFragment(getActivity());
                 updateItems();
                 return true;
             }
