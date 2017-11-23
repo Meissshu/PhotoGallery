@@ -1,6 +1,7 @@
 package com.meishu.android.photogallery.fragments;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -31,6 +32,7 @@ import com.meishu.android.photogallery.dataModel.GalleryItem;
 import com.meishu.android.photogallery.dataUtils.FlickrFetchr;
 import com.meishu.android.photogallery.dataUtils.QueryPreferencesUtils;
 import com.meishu.android.photogallery.dataUtils.ThumbnailDownloader;
+import com.meishu.android.photogallery.services.PollService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +64,9 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
         setRetainInstance(true);
         setHasOptionsMenu(true);
         updateItems();
+
+        Intent intent = PollService.newIntent(getActivity());
+        getActivity().startService(intent);
 
         Handler responseHandler = new Handler();
         thumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
