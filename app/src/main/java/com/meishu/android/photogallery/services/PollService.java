@@ -3,6 +3,7 @@ package com.meishu.android.photogallery.services;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -24,6 +25,17 @@ public class PollService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
+        if (!isNetworkAvailableAndConnected()) {
+            return;
+        }
         Log.i(TAG, "Received an intent " + intent);
+    }
+
+    private boolean isNetworkAvailableAndConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+
+        return  cm != null &&
+                cm.getActiveNetworkInfo() != null &&
+                cm.getActiveNetworkInfo().isConnected();
     }
 }
