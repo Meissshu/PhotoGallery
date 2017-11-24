@@ -1,9 +1,12 @@
 package com.meishu.android.photogallery.services;
 
+import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -20,9 +23,23 @@ import java.util.List;
 public class PollService extends IntentService {
 
     private static final String TAG = "PollService";
+    private static final int POLL_INTERVAL = 1000 * 60; // 60sec
 
     public static Intent newIntent(Context context) {
         return new Intent(context, PollService.class);
+    }
+
+    public static void setServiceAlarm(Context context, boolean isOn) {
+        Intent i = PollService.newIntent(context);
+        PendingIntent pendingIntent = PendingIntent.getService(context, 0, i, 0);
+
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(ALARM_SERVICE);
+        if (isOn) {
+            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(), POLL_INTERVAL, pendingIntent);
+        } else {
+            alarmManager.cancel(pendingIntent);
+            pendingIntent.cancel();
+        }
     }
 
     public PollService() {

@@ -65,8 +65,7 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
         setHasOptionsMenu(true);
         updateItems();
 
-        Intent intent = PollService.newIntent(getActivity());
-        getActivity().startService(intent);
+        PollService.setServiceAlarm(getActivity(), true);
 
         Handler responseHandler = new Handler();
         thumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
