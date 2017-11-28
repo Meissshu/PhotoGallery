@@ -2,14 +2,20 @@ package com.meishu.android.photogallery.services;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
+import com.meishu.android.photogallery.R;
+import com.meishu.android.photogallery.activities.PhotoGalleryActivity;
 import com.meishu.android.photogallery.dataModel.GalleryItem;
 import com.meishu.android.photogallery.dataUtils.FlickrFetchr;
 import com.meishu.android.photogallery.dataUtils.QueryPreferencesUtils;
@@ -23,7 +29,7 @@ import java.util.List;
 public class PollService extends IntentService {
 
     private static final String TAG = "PollService";
-    private static final int POLL_INTERVAL = 1000 * 60; // 60sec
+    private static final long POLL_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES; // 60sec
 
     public static Intent newIntent(Context context) {
         return new Intent(context, PollService.class);
@@ -79,8 +85,23 @@ public class PollService extends IntentService {
             Log.i(TAG, "Got a new result: " + resultId);
         }
 
-        QueryPreferencesUtils.setLastResultId(this, resultId);
+        Resources resourses = getResources();
+        Intent i = PhotoGalleryActivity.newIntent(this);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, i, 0);
 
+        Notification notification = new NotificationCompat.Builder(this)
+                .setTicker(resourses.getString(R.string.new_pictures_title))
+                .setSmallIcon(android.R.drawable.ic_menu_report_image)
+                .setContentTitle(resourses.getString(R.string.new_pictures_title))
+                .setContentText(resourses.getString(R.string.new_pictures_text))
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build();
+
+        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this);
+        managerCompat.notify(0, notification);
+
+        QueryPreferencesUtils.setLastResultId(this, resultId);
     }
 
     private boolean isNetworkAvailableAndConnected() {
