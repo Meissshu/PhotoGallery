@@ -65,8 +65,6 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
         setHasOptionsMenu(true);
         updateItems();
 
-        PollService.setServiceAlarm(getActivity(), true);
-
         Handler responseHandler = new Handler();
         thumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
         thumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<PhotoHolder>() {
@@ -142,6 +140,13 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
                 searchView.setQuery(query, false);
             }
         });
+
+        MenuItem toggleItem = menu.findItem(R.id.menu_item_toggle_polling);
+        if (PollService.isServiceAlarmOn(getActivity())) {
+            toggleItem.setTitle(R.string.stop_polling);
+        } else {
+            toggleItem.setTitle(R.string.start_polling);
+        }
     }
 
     @Override
@@ -152,6 +157,11 @@ public class PhotoGalleryFragment extends Fragment implements ViewTreeObserver.O
             case R.id.menu_item_clear:
                 QueryPreferencesUtils.setStoredQuery(getActivity(), null);
                 updateItems();
+                return true;
+            case R.id.menu_item_toggle_polling:
+                boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
+                PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
+                getActivity().invalidateOptionsMenu(); // update options menu
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

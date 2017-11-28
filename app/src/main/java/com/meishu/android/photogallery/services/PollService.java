@@ -42,6 +42,12 @@ public class PollService extends IntentService {
         }
     }
 
+    public static boolean isServiceAlarmOn(Context context) {
+        Intent i = PollService.newIntent(context);
+        PendingIntent pendingIntent = PendingIntent.getService(context, 0, i, PendingIntent.FLAG_NO_CREATE);
+        return pendingIntent != null;
+    }
+
     public PollService() {
         super(TAG);
     }
